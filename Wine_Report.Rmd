@@ -11,11 +11,13 @@ library(tidyverse)
 library(car)
 library(GGally)
 library(patchwork)
+library(broom)
 ```
 
 ```{r}
 wine <- read.csv("https://www.math.carleton.edu/ckelling/data/wine_project.csv")
 names(wine)
+wine <- wine %>% mutate(index = row_number())
 ```
 
 Check for covariance
@@ -34,13 +36,39 @@ Examine t and F tests for basic model
 anova(basic.wine.lm)
 summary(basic.wine.lm)
 ```
-Fit next model iteration
+
+remove outliers:
+  -max sugar outlier has max leverage
+  -total SO2 outlier has max std.resid
+
 ```{r}
-wine.lm.one <- lm(quality ~ fixed.acidity + volatile.acidity + residual.sugar + chlorides + total.sulfur.dioxide + density + pH + sulphates + alcohol + color, data = wine)
-vif(wine.lm.one)
-anova(wine.lm.one)
-summary(wine.lm.one)
-crp(wine.lm.one)
+aug_basic <- augment(basic.wine.lm, data = wine)
+slice_max(wine, residual.sugar) # try removing sugar outlier: max leverage
+wine_removed <- wine %>% filter(!(index %in% c(4381, 6345)))
 ```
 
+```{r}
+ggpairs(wine_removed)
+```
+
+```{r}
+no.outliers.lm <- lm(quality ~ fixed.acidity + volatile.acidity + citric.acid + residual.sugar + chlorides + free.sulfur.dioxide + total.sulfur.dioxide + density + pH + sulphates + alcohol + color, data = wine_removed)
+vif(no.outliers.lm)
+anova(no.outliers.lm)
+summary(no.outliers.lm)
+```
+
+Fit next model iteration
+```{r}
+density.dropped.lm <- lm(quality ~ fixed.acidity + volatile.acidity + citric.acid + residual.sugar + chlorides + free.sulfur.dioxide + total.sulfur.dioxide + pH + sulphates + alcohol + color, data = wine)
+vif(density.dropped.lm)
+anova(density.dropped.lm)
+summary(density.dropped.lm)
+#crp(density.dropped.lm)
+```
+
+```{r}
+AIC(basic.wine.lm)
+AIC(density.dropped.lm)
+```
 
