@@ -40,7 +40,6 @@ wine.lm.one <- lm(quality ~ fixed.acidity + volatile.acidity + residual.sugar + 
 vif(wine.lm.one)
 anova(wine.lm.one)
 summary(wine.lm.one)
-crp(wine.lm.one)
 ```
 
 
