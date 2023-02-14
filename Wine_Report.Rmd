@@ -15,5 +15,32 @@ library(patchwork)
 
 ```{r}
 wine <- read.csv("https://www.math.carleton.edu/ckelling/data/wine_project.csv")
+names(wine)
 ```
+
+Check for covariance
+```{r}
+ggpairs(wine)
+```
+
+fit a basic model and examine VIF
+```{r}
+basic.wine.lm <- lm(quality ~ fixed.acidity + volatile.acidity + citric.acid + residual.sugar + chlorides + free.sulfur.dioxide + total.sulfur.dioxide + density + pH + sulphates + alcohol + color, data = wine)
+vif(basic.wine.lm)
+```
+
+Examine t and F tests for basic model
+```{r}
+anova(basic.wine.lm)
+summary(basic.wine.lm)
+```
+Fit next model iteration
+```{r}
+wine.lm.one <- lm(quality ~ fixed.acidity + volatile.acidity + residual.sugar + chlorides + total.sulfur.dioxide + density + pH + sulphates + alcohol + color, data = wine)
+vif(wine.lm.one)
+anova(wine.lm.one)
+summary(wine.lm.one)
+crp(wine.lm.one)
+```
+
 
