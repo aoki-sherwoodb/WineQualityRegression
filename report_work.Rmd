@@ -11,6 +11,7 @@ library(tidyverse)
 library(car)
 library(GGally)
 library(patchwork)
+library(ggResidPanel)
 ```
 
 ```{r}
@@ -21,5 +22,14 @@ wine <- read.csv("https://www.math.carleton.edu/ckelling/data/wine_project.csv")
 ggpairs(wine)
 ```
 
+```{r}
+ggplot(wine) +
+  geom_point(aes(x = log(chlorides), y = quality))
+```
+
+```{r}
+ggplot(wine) +
+  geom_point(aes(x = density, y = quality))
+```
 
 

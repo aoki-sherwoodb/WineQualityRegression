@@ -148,6 +148,7 @@ vif(no.outliers.lm)
 anova(no.outliers.lm)
 summary(no.outliers.lm)
 ```
+
 Check assumptions
 ```{r}
 #Augment the dataset using the interaction regression model
@@ -208,9 +209,18 @@ ggplot(va_aug, aes(sample = .resid)) +
                         x = "Normal Quantiles")
 ```
 
-Reparameterize the sulfur dioxides
+Reparameterize the sulfur dioxides and acidities
 ```{r}
-
+wine.reparam <- wine %>%
+  mutate(bound.sulfur.dioxide = total.sulfur.dioxide - free.sulfur.dioxide,
+         total.acidity = fixed.acidity + volatile.acidity + citric.acid - pH,
+         alc.density = density * alcohol)
 ```
+
+```{r}
+reparam.wine.lm <- lm(quality ~ total.acidity + residual.sugar + chlorides + free.sulfur.dioxide + bound.sulfur.dioxide + alc.density + sulphates + color, data = wine.reparam)
+vif(reparam.wine.lm)
+```
+
 
 
