@@ -12,3 +12,14 @@ library(car)
 library(GGally)
 library(patchwork)
 ```
+
+```{r}
+wine <- read.csv("https://www.math.carleton.edu/ckelling/data/wine_project.csv")
+```
+
+```{r}
+ggpairs(wine)
+```
+
+
+
