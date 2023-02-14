@@ -1,0 +1,14 @@
+---
+title: "Wine Quality Report"
+author: "Ben Aoki-Sherwood"
+date: "2023-02-14"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(car)
+library(GGally)
+library(patchwork)
+```
