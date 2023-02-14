@@ -67,7 +67,150 @@ summary(density.dropped.lm)
 ```
 
 ```{r}
-AIC(basic.wine.lm)
+AIC(no.outliers.lm)
 AIC(density.dropped.lm)
 ```
+
+```{r}
+#install.packages("ggResidpanel")
+```
+
+
+```{r}
+library(ggResidpanel)
+resid_panel(no.outliers.lm, plots = c("resid","qq"))
+```
+
+```{r}
+#Augment the dataset using the interaction regression model
+no_outlier_aug <- augment(no.outliers.lm)
+#Plot the residual plots against each of the explanatory variables
+library(patchwork)
+plot1 <- ggplot(no_outlier_aug, aes(x = fixed.acidity, y = .resid) ) + 
+  geom_point() + geom_hline(yintercept = 0, linetype= "dashed") + 
+  labs(y= "Residuals",  x= "Fixed Acidity")
+plot2 <- ggplot(no_outlier_aug, aes(x = volatile.acidity, y = .resid) ) + 
+  geom_point() + geom_hline(yintercept = 0, linetype= "dashed") + 
+  labs(y= "Residuals",  x= "Volatile Acidity")
+plot3 <- ggplot(no_outlier_aug, aes(x = citric.acid, y = .resid) ) + 
+  geom_point() + geom_hline(yintercept = 0, linetype= "dashed") + 
+  labs(y= "Residuals",  x= "Citric Acid")
+plot4 <- ggplot(no_outlier_aug, aes(x = residual.sugar, y = .resid) ) + 
+  geom_point() + geom_hline(yintercept = 0, linetype= "dashed") + 
+  labs(y= "Residuals",  x= "Residual Sugar")
+plot5 <- ggplot(no_outlier_aug, aes(x = chlorides, y = .resid) ) + 
+  geom_point() + geom_hline(yintercept = 0, linetype= "dashed") + 
+  labs(y= "Residuals",  x= "Chlorides")
+plot6 <- ggplot(no_outlier_aug, aes(x = free.sulfur.dioxide, y = .resid) ) + 
+  geom_point() + geom_hline(yintercept = 0, linetype= "dashed") + 
+  labs(y= "Residuals",  x= "Free Sulfur Dioxide")
+plot7 <- ggplot(no_outlier_aug, aes(x = total.sulfur.dioxide, y = .resid) ) + 
+  geom_point() + geom_hline(yintercept = 0, linetype= "dashed") + 
+  labs(y= "Residuals",  x= "total sulfur dioxide")
+plot8 <- ggplot(no_outlier_aug, aes(x = pH, y = .resid) ) + 
+  geom_point() + geom_hline(yintercept = 0, linetype= "dashed") + 
+  labs(y= "Residuals",  x= "pH")
+plot9 <- ggplot(no_outlier_aug, aes(x = density, y = .resid) ) + 
+  geom_point() + geom_hline(yintercept = 0, linetype= "dashed") + 
+  labs(y= "Residuals",  x= "Density")
+plot10 <- ggplot(no_outlier_aug, aes(x = sulphates, y = .resid) ) + 
+  geom_point() + geom_hline(yintercept = 0, linetype= "dashed") + 
+  labs(y= "Residuals",  x= "Sulphates ")
+plot11 <- ggplot(no_outlier_aug, aes(x = alcohol, y = .resid) ) + 
+  geom_point() + geom_hline(yintercept = 0, linetype= "dashed") + 
+  labs(y= "Residuals",  x= "Alcohol")
+plot12 <- ggplot(no_outlier_aug, aes(x = color, y = .resid) ) + 
+  geom_point() + geom_hline(yintercept = 0, linetype= "dashed") + 
+  labs(y= "Residuals",  x= "Color")
+
+# arrange the plots in a 2x4 grid:
+(plot1 + plot2) /
+  (plot3 + plot4)/ 
+  (plot5 + plot6)
+  
+
+(plot7 + plot8) /
+  (plot9 + plot10) /
+  (plot11 + plot12)
+
+#QQPlot to assess the normality of the sample
+ggplot(va_aug, aes(sample = .resid)) +
+  geom_qq() + 
+  geom_qq_line() + labs(title = "QQ Plot", y = "Sample Quantiles",
+                        x = "Normal Quantiles")
+```
+
+Log chlorides in the model
+
+```{r}
+no.outliers.lm <- lm(quality ~ fixed.acidity + volatile.acidity + citric.acid + residual.sugar + log(chlorides) + free.sulfur.dioxide + total.sulfur.dioxide + density + pH + sulphates + alcohol + color, data = wine_removed)
+vif(no.outliers.lm)
+anova(no.outliers.lm)
+summary(no.outliers.lm)
+```
+Check assumptions
+```{r}
+#Augment the dataset using the interaction regression model
+no_outlier_aug <- augment(no.outliers.lm, newdata=wine_removed)
+#Plot the residual plots against each of the explanatory variables
+library(patchwork)
+plot1 <- ggplot(no_outlier_aug, aes(x = fixed.acidity, y = .resid) ) + 
+  geom_point() + geom_hline(yintercept = 0, linetype= "dashed") + 
+  labs(y= "Residuals",  x= "Fixed Acidity")
+plot2 <- ggplot(no_outlier_aug, aes(x = volatile.acidity, y = .resid) ) + 
+  geom_point() + geom_hline(yintercept = 0, linetype= "dashed") + 
+  labs(y= "Residuals",  x= "Volatile Acidity")
+plot3 <- ggplot(no_outlier_aug, aes(x = citric.acid, y = .resid) ) + 
+  geom_point() + geom_hline(yintercept = 0, linetype= "dashed") + 
+  labs(y= "Residuals",  x= "Citric Acid")
+plot4 <- ggplot(no_outlier_aug, aes(x = residual.sugar, y = .resid) ) + 
+  geom_point() + geom_hline(yintercept = 0, linetype= "dashed") + 
+  labs(y= "Residuals",  x= "Residual Sugar")
+plot5 <- ggplot(no_outlier_aug, aes(x = log(chlorides), y = .resid) ) + 
+  geom_point() + geom_hline(yintercept = 0, linetype= "dashed") + 
+  labs(y= "Residuals",  x= "Chlorides")
+plot6 <- ggplot(no_outlier_aug, aes(x = free.sulfur.dioxide, y = .resid) ) + 
+  geom_point() + geom_hline(yintercept = 0, linetype= "dashed") + 
+  labs(y= "Residuals",  x= "Free Sulfur Dioxide")
+plot7 <- ggplot(no_outlier_aug, aes(x = total.sulfur.dioxide, y = .resid) ) + 
+  geom_point() + geom_hline(yintercept = 0, linetype= "dashed") + 
+  labs(y= "Residuals",  x= "total sulfur dioxide")
+plot8 <- ggplot(no_outlier_aug, aes(x = pH, y = .resid) ) + 
+  geom_point() + geom_hline(yintercept = 0, linetype= "dashed") + 
+  labs(y= "Residuals",  x= "pH")
+plot9 <- ggplot(no_outlier_aug, aes(x = density, y = .resid) ) + 
+  geom_point() + geom_hline(yintercept = 0, linetype= "dashed") + 
+  labs(y= "Residuals",  x= "Density")
+plot10 <- ggplot(no_outlier_aug, aes(x = sulphates, y = .resid) ) + 
+  geom_point() + geom_hline(yintercept = 0, linetype= "dashed") + 
+  labs(y= "Residuals",  x= "Sulphates ")
+plot11 <- ggplot(no_outlier_aug, aes(x = alcohol, y = .resid) ) + 
+  geom_point() + geom_hline(yintercept = 0, linetype= "dashed") + 
+  labs(y= "Residuals",  x= "Alcohol")
+plot12 <- ggplot(no_outlier_aug, aes(x = color, y = .resid) ) + 
+  geom_point() + geom_hline(yintercept = 0, linetype= "dashed") + 
+  labs(y= "Residuals",  x= "Color")
+
+# arrange the plots in a 2x4 grid:
+(plot1 + plot2) /
+  (plot3 + plot4)/ 
+  (plot5 + plot6)
+  
+
+(plot7 + plot8) /
+  (plot9 + plot10) /
+  (plot11 + plot12)
+
+#QQPlot to assess the normality of the sample
+ggplot(va_aug, aes(sample = .resid)) +
+  geom_qq() + 
+  geom_qq_line() + labs(title = "QQ Plot", y = "Sample Quantiles",
+                        x = "Normal Quantiles")
+```
+
+Reparameterize the sulfur dioxides
+```{r}
+
+```
+
 
