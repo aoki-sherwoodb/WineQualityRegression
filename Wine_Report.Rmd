@@ -218,8 +218,11 @@ wine.reparam <- wine %>%
 ```
 
 ```{r}
-reparam.wine.lm <- lm(quality ~ total.acidity + residual.sugar + chlorides + free.sulfur.dioxide + bound.sulfur.dioxide + alc.density + sulphates + color, data = wine.reparam)
+reparam.wine.lm <- lm(quality ~ total.acidity + residual.sugar + chlorides + free.sulfur.dioxide + bound.sulfur.dioxide + alcohol + density + sulphates + color, data = wine.reparam)
 vif(reparam.wine.lm)
+anova(reparam.wine.lm)
+summary(reparam.wine.lm)
+AIC(reparam.wine.lm)
 ```
 
 
