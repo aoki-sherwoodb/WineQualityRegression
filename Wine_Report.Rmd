@@ -209,18 +209,27 @@ ggplot(va_aug, aes(sample = .resid)) +
                         x = "Normal Quantiles")
 ```
 
+```{r}
+crp(no.outliers.lm, terms = quality ~ density)
+```
+
+
 Reparameterize the sulfur dioxides and acidities
 ```{r}
 wine.reparam <- wine %>%
   mutate(bound.sulfur.dioxide = total.sulfur.dioxide - free.sulfur.dioxide,
-         total.acidity = fixed.acidity + volatile.acidity + citric.acid - pH,
-         alc.density = density * alcohol)
+         total.acidity = fixed.acidity + volatile.acidity + citric.acid)
 ```
 
 ```{r}
-reparam.wine.lm <- lm(quality ~ total.acidity + residual.sugar + chlorides + free.sulfur.dioxide + bound.sulfur.dioxide + alc.density + sulphates + color, data = wine.reparam)
+reparam.wine.lm <- lm(quality ~ total.acidity + chlorides + free.sulfur.dioxide + bound.sulfur.dioxide + alcohol + density + pH + sulphates + color, data = wine.reparam)
 vif(reparam.wine.lm)
 ```
 
+```{r}
+AIC(reparam.wine.lm)
+anova(reparam.wine.lm)
+summary(reparam.wine.lm)
+```
 
 
