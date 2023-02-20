@@ -52,371 +52,79 @@ ggpairs(wine_removed)
 ```
 
 ```{r}
-no.outliers.lm <- lm(quality ~ fixed.acidity + volatile.acidity + citric.acid + residual.sugar + chlorides + free.sulfur.dioxide + total.sulfur.dioxide + density + pH + sulphates + alcohol + color, data = wine_removed)
-vif(no.outliers.lm)
-anova(no.outliers.lm)
-summary(no.outliers.lm)
+wine.reparam <- wine_removed %>%
+  mutate(bound.sulfur.dioxide = total.sulfur.dioxide - free.sulfur.dioxide)
+
+#Create new model with bound sulfur dioxide instead of total sulfur dioxide
+new.basic.wine.lm <- lm(quality ~ fixed.acidity + volatile.acidity + citric.acid + residual.sugar + chlorides + free.sulfur.dioxide + bound.sulfur.dioxide + density + pH + sulphates + alcohol + color, data = wine.reparam)
 ```
 
-Fit next model iteration
 ```{r}
-density.dropped.lm <- lm(quality ~ fixed.acidity + volatile.acidity + citric.acid + residual.sugar + chlorides + free.sulfur.dioxide + total.sulfur.dioxide + pH + sulphates + alcohol + color, data = wine)
+vif(new.basic.wine.lm)
+```
+Create new model without density and check VIF
+```{r}
+density.dropped.lm <- lm(quality ~ fixed.acidity + volatile.acidity + citric.acid + residual.sugar + chlorides + free.sulfur.dioxide + bound.sulfur.dioxide + pH + sulphates + alcohol + color, data = wine.reparam)
 vif(density.dropped.lm)
-anova(density.dropped.lm)
-summary(density.dropped.lm)
 ```
-
-```{r}
-AIC(no.outliers.lm)
-AIC(density.dropped.lm)
-```
-
-```{r}
-#install.packages("ggResidpanel")
-```
-
-
-```{r}
-library(ggResidpanel)
-resid_panel(no.outliers.lm, plots = c("resid","qq"))
-```
-
-```{r}
-#Augment the dataset using the interaction regression model
-no_outlier_aug <- augment(no.outliers.lm)
-#Plot the residual plots against each of the explanatory variables
-library(patchwork)
-plot1 <- ggplot(no_outlier_aug, aes(x = fixed.acidity, y = .resid) ) + 
-  geom_point() + geom_hline(yintercept = 0, linetype= "dashed") + 
-  labs(y= "Residuals",  x= "Fixed Acidity")
-plot2 <- ggplot(no_outlier_aug, aes(x = volatile.acidity, y = .resid) ) + 
-  geom_point() + geom_hline(yintercept = 0, linetype= "dashed") + 
-  labs(y= "Residuals",  x= "Volatile Acidity")
-plot3 <- ggplot(no_outlier_aug, aes(x = citric.acid, y = .resid) ) + 
-  geom_point() + geom_hline(yintercept = 0, linetype= "dashed") + 
-  labs(y= "Residuals",  x= "Citric Acid")
-plot4 <- ggplot(no_outlier_aug, aes(x = residual.sugar, y = .resid) ) + 
-  geom_point() + geom_hline(yintercept = 0, linetype= "dashed") + 
-  labs(y= "Residuals",  x= "Residual Sugar")
-plot5 <- ggplot(no_outlier_aug, aes(x = chlorides, y = .resid) ) + 
-  geom_point() + geom_hline(yintercept = 0, linetype= "dashed") + 
-  labs(y= "Residuals",  x= "Chlorides")
-plot6 <- ggplot(no_outlier_aug, aes(x = free.sulfur.dioxide, y = .resid) ) + 
-  geom_point() + geom_hline(yintercept = 0, linetype= "dashed") + 
-  labs(y= "Residuals",  x= "Free Sulfur Dioxide")
-plot7 <- ggplot(no_outlier_aug, aes(x = total.sulfur.dioxide, y = .resid) ) + 
-  geom_point() + geom_hline(yintercept = 0, linetype= "dashed") + 
-  labs(y= "Residuals",  x= "total sulfur dioxide")
-plot8 <- ggplot(no_outlier_aug, aes(x = pH, y = .resid) ) + 
-  geom_point() + geom_hline(yintercept = 0, linetype= "dashed") + 
-  labs(y= "Residuals",  x= "pH")
-plot9 <- ggplot(no_outlier_aug, aes(x = density, y = .resid) ) + 
-  geom_point() + geom_hline(yintercept = 0, linetype= "dashed") + 
-  labs(y= "Residuals",  x= "Density")
-plot10 <- ggplot(no_outlier_aug, aes(x = sulphates, y = .resid) ) + 
-  geom_point() + geom_hline(yintercept = 0, linetype= "dashed") + 
-  labs(y= "Residuals",  x= "Sulphates ")
-plot11 <- ggplot(no_outlier_aug, aes(x = alcohol, y = .resid) ) + 
-  geom_point() + geom_hline(yintercept = 0, linetype= "dashed") + 
-  labs(y= "Residuals",  x= "Alcohol")
-plot12 <- ggplot(no_outlier_aug, aes(x = color, y = .resid) ) + 
-  geom_point() + geom_hline(yintercept = 0, linetype= "dashed") + 
-  labs(y= "Residuals",  x= "Color")
-
-# arrange the plots in a 2x4 grid:
-(plot1 + plot2) /
-  (plot3 + plot4)/ 
-  (plot5 + plot6)
-  
-
-(plot7 + plot8) /
-  (plot9 + plot10) /
-  (plot11 + plot12)
-
-#QQPlot to assess the normality of the sample
-ggplot(va_aug, aes(sample = .resid)) +
-  geom_qq() + 
-  geom_qq_line() + labs(title = "QQ Plot", y = "Sample Quantiles",
-                        x = "Normal Quantiles")
-```
-
-Log chlorides in the model
-
-```{r}
-no.outliers.lm <- lm(quality ~ fixed.acidity + volatile.acidity + citric.acid + residual.sugar + log(chlorides) + free.sulfur.dioxide + total.sulfur.dioxide + density + pH + sulphates + alcohol + color, data = wine_removed)
-vif(no.outliers.lm)
-anova(no.outliers.lm)
-summary(no.outliers.lm)
-```
-
 Check assumptions
 ```{r}
-#Augment the dataset using the interaction regression model
-no_outlier_aug <- augment(no.outliers.lm, newdata=wine_removed)
-#Plot the residual plots against each of the explanatory variables
-library(patchwork)
-plot1 <- ggplot(no_outlier_aug, aes(x = fixed.acidity, y = .resid) ) + 
-  geom_point() + geom_hline(yintercept = 0, linetype= "dashed") + 
-  labs(y= "Residuals",  x= "Fixed Acidity")
-plot2 <- ggplot(no_outlier_aug, aes(x = volatile.acidity, y = .resid) ) + 
-  geom_point() + geom_hline(yintercept = 0, linetype= "dashed") + 
-  labs(y= "Residuals",  x= "Volatile Acidity")
-plot3 <- ggplot(no_outlier_aug, aes(x = citric.acid, y = .resid) ) + 
-  geom_point() + geom_hline(yintercept = 0, linetype= "dashed") + 
-  labs(y= "Residuals",  x= "Citric Acid")
-plot4 <- ggplot(no_outlier_aug, aes(x = residual.sugar, y = .resid) ) + 
-  geom_point() + geom_hline(yintercept = 0, linetype= "dashed") + 
-  labs(y= "Residuals",  x= "Residual Sugar")
-plot5 <- ggplot(no_outlier_aug, aes(x = log(chlorides), y = .resid) ) + 
-  geom_point() + geom_hline(yintercept = 0, linetype= "dashed") + 
-  labs(y= "Residuals",  x= "Chlorides")
-plot6 <- ggplot(no_outlier_aug, aes(x = free.sulfur.dioxide, y = .resid) ) + 
-  geom_point() + geom_hline(yintercept = 0, linetype= "dashed") + 
-  labs(y= "Residuals",  x= "Free Sulfur Dioxide")
-plot7 <- ggplot(no_outlier_aug, aes(x = total.sulfur.dioxide, y = .resid) ) + 
-  geom_point() + geom_hline(yintercept = 0, linetype= "dashed") + 
-  labs(y= "Residuals",  x= "total sulfur dioxide")
-plot8 <- ggplot(no_outlier_aug, aes(x = pH, y = .resid) ) + 
-  geom_point() + geom_hline(yintercept = 0, linetype= "dashed") + 
-  labs(y= "Residuals",  x= "pH")
-plot9 <- ggplot(no_outlier_aug, aes(x = density, y = .resid) ) + 
-  geom_point() + geom_hline(yintercept = 0, linetype= "dashed") + 
-  labs(y= "Residuals",  x= "Density")
-plot10 <- ggplot(no_outlier_aug, aes(x = sulphates, y = .resid) ) + 
-  geom_point() + geom_hline(yintercept = 0, linetype= "dashed") + 
-  labs(y= "Residuals",  x= "Sulphates ")
-plot11 <- ggplot(no_outlier_aug, aes(x = alcohol, y = .resid) ) + 
-  geom_point() + geom_hline(yintercept = 0, linetype= "dashed") + 
-  labs(y= "Residuals",  x= "Alcohol")
-plot12 <- ggplot(no_outlier_aug, aes(x = color, y = .resid) ) + 
-  geom_point() + geom_hline(yintercept = 0, linetype= "dashed") + 
-  labs(y= "Residuals",  x= "Color")
-
-# arrange the plots in a 2x4 grid:
-(plot1 + plot2) /
-  (plot3 + plot4)/ 
-  (plot5 + plot6)
-  
-
-(plot7 + plot8) /
-  (plot9 + plot10) /
-  (plot11 + plot12)
-
-#QQPlot to assess the normality of the sample
-ggplot(va_aug, aes(sample = .resid)) +
-  geom_qq() + 
-  geom_qq_line() + labs(title = "QQ Plot", y = "Sample Quantiles",
-                        x = "Normal Quantiles")
+resid_xpanel(density.dropped.lm, smoother = TRUE)
+```
+Log chlorides, check using F-test if adding quadratic term for free sulfur dioxide is significant
+```{r}
+chlorides.lm <- lm(quality ~ fixed.acidity + volatile.acidity + citric.acid + residual.sugar + log(chlorides) + free.sulfur.dioxide + bound.sulfur.dioxide + pH + sulphates + alcohol + color, data = wine.reparam)
+quad.sulfur.lm <- lm(quality ~ fixed.acidity + volatile.acidity + citric.acid + residual.sugar + log(chlorides) + free.sulfur.dioxide + I(free.sulfur.dioxide^2) + bound.sulfur.dioxide + pH + sulphates + alcohol + color, data = wine.reparam)
+anova(chlorides.lm, quad.sulfur.lm)
+```
+Check confidence intervals of latest model
+```{r}
+confint(quad.sulfur.lm)
+```
+Check if fixed acidity and citric acid have any effect on model significance
+```{r}
+less.acidity.lm <- lm(quality ~ volatile.acidity + residual.sugar + log(chlorides) + free.sulfur.dioxide + I(free.sulfur.dioxide^2) + bound.sulfur.dioxide + pH + sulphates + alcohol + color, data = wine.reparam)
+anova(less.acidity.lm, quad.sulfur.lm)
+AIC(less.acidity.lm)
+AIC(quad.sulfur.lm)
+#Conclude that neither acidity measure has an effect on the model
+```
+Check for interactions with color
+```{r}
+wine.interactions.lm <- lm(quality ~ (volatile.acidity + residual.sugar + log(chlorides) + free.sulfur.dioxide + I(free.sulfur.dioxide^2) + bound.sulfur.dioxide + pH + sulphates + alcohol)*color, data = wine.reparam)
+#Check sums of squares of interaction terms
+anova(wine.interactions.lm)
+#Select highest sums of squares terms: free sulfur dioxide and pH (interactions)
 ```
 
+Add in interaction with free sulfur dioxide and color, check to see if pH and color is a significant interaction
 ```{r}
-crp(no.outliers.lm, terms = quality ~ density)
-```
-
-
-Reparameterize the sulfur dioxides and acidities
-```{r}
-wine.reparam <- wine_removed %>%
-  mutate(bound.sulfur.dioxide = total.sulfur.dioxide - free.sulfur.dioxide,
-         total.acidity = fixed.acidity + volatile.acidity + citric.acid)
-```
-
-```{r}
-reparam.wine.lm <- lm(quality ~ total.acidity + log(chlorides) + free.sulfur.dioxide + bound.sulfur.dioxide + alcohol + density + pH + sulphates + color, data = wine.reparam)
-vif(reparam.wine.lm)
-anova(reparam.wine.lm)
-summary(reparam.wine.lm)
-AIC(reparam.wine.lm)
-```
-
-```{r}
-AIC(reparam.wine.lm)
-anova(reparam.wine.lm)
-summary(reparam.wine.lm)
-```
-
-```{r}
-reparam_wine_aug = augment(reparam.wine.lm, newdata = wine.reparam)
-#QQPlot to assess the normality of the sample
-ggplot(reparam_wine_aug, aes(sample = .resid)) +
-  geom_qq() + 
-  geom_qq_line() + labs(title = "QQ Plot", y = "Sample Quantiles",
-                        x = "Normal Quantiles")
-```
-
-Figured out how to do the residual plots
-```{r}
-resid_xpanel(reparam.wine.lm, smoother = TRUE)
-```
-
-```{r}
-final.wine.lm <- lm(quality ~ total.acidity + log(chlorides) + poly(free.sulfur.dioxide,2) + bound.sulfur.dioxide + alcohol + density + pH + sulphates + color, data = wine.reparam)
-summary(final.wine.lm)
-anova(final.wine.lm)
-vif(final.wine.lm)
-AIC(final.wine.lm)
-```
-xpanel does not seem to like polynomial models
-```{r}
-#resid_xpanel(final.wine.lm)
-```
-
-```{r}
-#Augment the dataset using the interaction regression model
-final_wine_aug <- augment(final.wine.lm, newdata=wine.reparam)
-#Plot the residual plots against each of the explanatory variables
-library(patchwork)
-plot1 <- ggplot(final_wine_aug, aes(x = total.acidity, y = .resid) ) + 
-  geom_point() + geom_hline(yintercept = 0, linetype= "dashed") + 
-  labs(y= "Residuals",  x= "Total Acidity")
-plot2 <- ggplot(final_wine_aug, aes(x = log(chlorides), y = .resid) ) + 
-  geom_point() + geom_hline(yintercept = 0, linetype= "dashed") + 
-  labs(y= "Residuals",  x= "Log Chlorides")
-plot3 <- ggplot(final_wine_aug, aes(x = 'poly(free.sulfur.dioxide, 2)1', y = .resid) ) + 
-  geom_point() + geom_hline(yintercept = 0, linetype= "dashed") + 
-  labs(y= "Residuals",  x= "free sulfur dioxide")
-plot4 <- ggplot(final_wine_aug, aes(x = 'poly(free.sulfur.dioxide, 2)2', y = .resid) ) + 
-  geom_point() + geom_hline(yintercept = 0, linetype= "dashed") + 
-  labs(y= "Residuals",  x= "free sulfur dioxide")
-plot5 <- ggplot(final_wine_aug, aes(x = bound.sulfur.dioxide, y = .resid) ) + 
-  geom_point() + geom_hline(yintercept = 0, linetype= "dashed") + 
-  labs(y= "Residuals",  x= "Bound Sulfur Dioxide")
-plot6 <- ggplot(final_wine_aug, aes(x = alcohol, y = .resid) ) + 
-  geom_point() + geom_hline(yintercept = 0, linetype= "dashed") + 
-  labs(y= "Residuals",  x= "Alcohol")
-plot7 <- ggplot(final_wine_aug, aes(x = density, y = .resid) ) + 
-  geom_point() + geom_hline(yintercept = 0, linetype= "dashed") + 
-  labs(y= "Residuals",  x= "Density")
-plot8 <- ggplot(final_wine_aug, aes(x = pH, y = .resid) ) + 
-  geom_point() + geom_hline(yintercept = 0, linetype= "dashed") + 
-  labs(y= "Residuals",  x= "pH")
-plot9 <- ggplot(final_wine_aug, aes(x = sulphates, y = .resid) ) + 
-  geom_point() + geom_hline(yintercept = 0, linetype= "dashed") + 
-  labs(y= "Residuals",  x= "Sulphates ")
-plot10 <- ggplot(final_wine_aug, aes(x = color, y = .resid) ) + 
-  geom_point() + geom_hline(yintercept = 0, linetype= "dashed") + 
-  labs(y= "Residuals",  x= "Color")
-plot11 <- ggplot(final_wine_aug, aes(x = free.sulfur.dioxide, y = .resid) ) + 
-  geom_point() + geom_hline(yintercept = 0, linetype= "dashed") + 
-  labs(y= "Residuals",  x= "Free Sulfur Dioxide")
-
-# arrange the plots in a 2x4 grid:
-(plot1 + plot2) /
-  (plot3 + plot4)/ 
-  (plot5 + plot6)
-  
-
-(plot7 + plot8) /
-  (plot9 + plot10) /
-  plot11
-
-
-ggplot(final_wine_aug, aes(sample = .resid)) +
-  geom_qq() + 
-  geom_qq_line() + labs(title = "QQ Plot", y = "Sample Quantiles",
-                        x = "Normal Quantiles")
-```
-
-```{r}
-no.ph.wine.lm <- lm(quality ~ total.acidity + log(chlorides) + poly(free.sulfur.dioxide,2) + bound.sulfur.dioxide + alcohol + density + sulphates + color, data = wine.reparam)
-anova(no.ph.wine.lm, final.wine.lm)
-summary(no.ph.wine.lm)
-AIC(no.ph.wine.lm)
-anova(no.ph.wine.lm)
-```
-
-
-```{r}
-raw.wine.lm <- lm(quality ~ fixed.acidity + volatile.acidity + citric.acid + residual.sugar + log(chlorides) + poly(free.sulfur.dioxide,2) + bound.sulfur.dioxide + pH + sulphates + alcohol + color, data = wine.reparam)
-summary(raw.wine.lm)
-confint(raw.wine.lm)
-AIC(raw.wine.lm)
-vif(raw.wine.lm)
-```
-```{r}
-acidity.raw.wine.lm <- lm(quality ~ volatile.acidity + residual.sugar + log(chlorides) + poly(free.sulfur.dioxide,2) + bound.sulfur.dioxide + pH + sulphates + alcohol + color, data = wine.reparam)
-anova(acidity.raw.wine.lm, raw.wine.lm)
-summary(acidity.raw.wine.lm)
-confint(acidity.raw.wine.lm)
-AIC(acidity.raw.wine.lm)
-```
-
-```{r}
-interaction.acidity.wine.lm <- lm(quality ~ (volatile.acidity + residual.sugar + log(chlorides) + poly(free.sulfur.dioxide,2) + bound.sulfur.dioxide + pH + sulphates + alcohol)*color, data = wine.reparam)
-anova(interaction.acidity.wine.lm)
-```
-
-
-```{r}
-small.inter.wine.lm <- lm(quality ~ volatile.acidity + residual.sugar + log(chlorides) + poly(free.sulfur.dioxide,2)*color + bound.sulfur.dioxide + pH + sulphates + alcohol, data = wine.reparam)
-big.inter.wine.lm <- lm(quality ~ volatile.acidity + residual.sugar + log(chlorides) + poly(free.sulfur.dioxide,2)*color + bound.sulfur.dioxide + pH*color + sulphates + alcohol, data = wine.reparam)
+small.inter.wine.lm <- lm(quality ~ volatile.acidity + residual.sugar + log(chlorides) + free.sulfur.dioxide*color + I(free.sulfur.dioxide^2) + bound.sulfur.dioxide + pH + sulphates + alcohol, data = wine.reparam)
+big.inter.wine.lm <- lm(quality ~ volatile.acidity + residual.sugar + log(chlorides) + free.sulfur.dioxide*color + I(free.sulfur.dioxide^2) + bound.sulfur.dioxide + pH*color + sulphates + alcohol, data = wine.reparam)
 anova(small.inter.wine.lm,big.inter.wine.lm)
+AIC(small.inter.wine.lm)
+AIC(big.inter.wine.lm)
+#Conclude that pH and color interaction is significant
+#Both AICs are better than no interaction model
 ```
 
-
+Check AIC, coefficients, and confidence intervals of model
 ```{r}
 AIC(big.inter.wine.lm)
 summary(big.inter.wine.lm)
 confint(big.inter.wine.lm)
+#Confidence intervals suggest that all coefficients have significant effect
+```
+Finally, check model assumptions
+```{r}
+resid_panel(big.inter.wine.lm, plots=c("resid","qq"))
+#Even distribution in predicted values residual plot, qq is pretty straight (maybe slightly heavy tailed)
 ```
 
+
 ```{r}
-#Augment the dataset using the interaction regression model
-final_wine_aug <- augment(big.inter.wine.lm, newdata=wine.reparam)
-#Plot the residual plots against each of the explanatory variables
-library(patchwork)
-plot1 <- ggplot(final_wine_aug, aes(x = volatile.acidity, y = .resid) ) + 
-  geom_point() + geom_hline(yintercept = 0, linetype= "dashed") + 
-  labs(y= "Residuals",  x= "Volatile Acidity")
-plot2 <- ggplot(final_wine_aug, aes(x = log(chlorides), y = .resid) ) + 
-  geom_point() + geom_hline(yintercept = 0, linetype= "dashed") + 
-  labs(y= "Residuals",  x= "Log Chlorides")
-plot3 <- ggplot(final_wine_aug, aes(x = 'poly(free.sulfur.dioxide, 2)1', y = .resid) ) + 
-  geom_point() + geom_hline(yintercept = 0, linetype= "dashed") + 
-  labs(y= "Residuals",  x= "free sulfur dioxide")
-plot4 <- ggplot(final_wine_aug, aes(x = 'poly(free.sulfur.dioxide, 2)2', y = .resid) ) + 
-  geom_point() + geom_hline(yintercept = 0, linetype= "dashed") + 
-  labs(y= "Residuals",  x= "free sulfur dioxide")
-plot5 <- ggplot(final_wine_aug, aes(x = bound.sulfur.dioxide, y = .resid) ) + 
-  geom_point() + geom_hline(yintercept = 0, linetype= "dashed") + 
-  labs(y= "Residuals",  x= "Bound Sulfur Dioxide")
-plot6 <- ggplot(final_wine_aug, aes(x = alcohol, y = .resid) ) + 
-  geom_point() + geom_hline(yintercept = 0, linetype= "dashed") + 
-  labs(y= "Residuals",  x= "Alcohol")
-plot7 <- ggplot(final_wine_aug, aes(x = residual.sugar, y = .resid) ) + 
-  geom_point() + geom_hline(yintercept = 0, linetype= "dashed") + 
-  labs(y= "Residuals",  x= "Residual Sugar")
-plot8 <- ggplot(final_wine_aug, aes(x = pH, y = .resid) ) + 
-  geom_point() + geom_hline(yintercept = 0, linetype= "dashed") + 
-  labs(y= "Residuals",  x= "pH")
-plot9 <- ggplot(final_wine_aug, aes(x = sulphates, y = .resid) ) + 
-  geom_point() + geom_hline(yintercept = 0, linetype= "dashed") + 
-  labs(y= "Residuals",  x= "Sulphates ")
-plot10 <- ggplot(final_wine_aug, aes(x = color, y = .resid) ) + 
-  geom_point() + geom_hline(yintercept = 0, linetype= "dashed") + 
-  labs(y= "Residuals",  x= "Color")
-plot11 <- ggplot(final_wine_aug, aes(x = free.sulfur.dioxide, y = .resid) ) + 
-  geom_point() + geom_hline(yintercept = 0, linetype= "dashed") + 
-  labs(y= "Residuals",  x= "Free Sulfur Dioxide")
-plot12 <- ggplot(final_wine_aug, aes(x = .fitted, y = .resid) ) + 
-  geom_point() + geom_hline(yintercept = 0, linetype= "dashed") + 
-  labs(y= "Residuals",  x= ".fitted")
-
-# arrange the plots in a 2x3 grid:
-(plot1 + plot2) /
-  (plot3 + plot4)/ 
-  (plot5 + plot6)
-  
-
-(plot7 + plot8) /
-  (plot9 + plot10) /
-  (plot11 + plot12)
-
-
-ggplot(final_wine_aug, aes(sample = .resid)) +
-  geom_qq() + 
-  geom_qq_line() + labs(title = "QQ Plot", y = "Sample Quantiles",
-                        x = "Normal Quantiles")
+resid_xpanel(big.inter.wine.lm)
+#Scatters look generally linear, random, and homoskedastic
 ```
 
 
